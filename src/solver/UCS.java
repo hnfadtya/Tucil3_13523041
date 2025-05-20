@@ -3,14 +3,14 @@ package solver;
 import java.util.*;
 import model.*;
 
-public class GBFSolver extends Solver {
+public class UCS extends Solver {
 
     @Override
     public Result solve(Board initialBoard) {
         long startTime = System.nanoTime();
         long endTime;
 
-        PriorityQueue<Node> queue = new PriorityQueue<>();
+        PriorityQueue<Node> queue = new PriorityQueue<>(Comparator.comparingInt(n -> n.getCost()));
         Set<String> visited = new HashSet<>();
 
         Node startNode = new Node(initialBoard, new ArrayList<>(), 0);
@@ -28,7 +28,6 @@ public class GBFSolver extends Solver {
             if (visited.contains(stateKey)) continue;
             visited.add(stateKey);
 
-            // memastikan state belum pernah dikunjungi
             if (isGoal(currentBoard)) {
                 endTime = System.nanoTime();
                 return new Result(current.getPath(), visitedNodes, (endTime - startTime) / 1_000_000);
@@ -41,4 +40,5 @@ public class GBFSolver extends Solver {
         endTime = System.nanoTime();
         return new Result(new ArrayList<>(), visitedNodes, (endTime - startTime) / 1_000_000); // no solution found brader
     }
+
 }
