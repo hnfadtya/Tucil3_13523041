@@ -3,7 +3,6 @@ package solver;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import model.*;
@@ -17,11 +16,13 @@ public abstract class Solver {
 
         for (Position pos : primary.getPositions()) {
             if (primary.isHorizontal()) {
-                if (exit.row == pos.row && pos.col + 1 == exit.col) {
+                if (pos.row == exit.row &&
+                    (pos.col + 1 == exit.col || pos.col - 1 == exit.col)) {
                     return true;
                 }
             } else {
-                if (exit.col == pos.col && pos.row + 1 == exit.row) {
+                if (pos.col == exit.col &&
+                    (pos.row + 1 == exit.row || pos.row - 1 == exit.row)) {
                     return true;
                 }
             }
@@ -38,7 +39,7 @@ public abstract class Solver {
         for (Piece piece : pieces.values()) { // ngecek tiap piece
             List<Move> possibleMoves = getValidMoves(currentBoard, piece); // list gerakan yg memungkinkan (tidak berada di pinggir papan)
             for (Move move : possibleMoves) { 
-                Board newBoard = simulateMove(currentBoard, piece, move);
+                Board newBoard = currentBoard.simulateMove(piece, move);
                 if (newBoard != null) {
                     List<Move> newPath = new ArrayList<>(node.getPath());
                     newPath.add(move);
@@ -106,69 +107,6 @@ public abstract class Solver {
         }
 
         return moves;
-    }
-
-    protected Board simulateMove(Board currentBoard, Piece piece, Move move) {
-        int steps = move.getSteps(); // steps: kotak keberapa dari sebuah piece. kotak paling kiri atau atas bernilai satu dan seterusnya  
-        Move.Direction dir = move.getDirection();
-
-        // mengcopy grid lama (deep copy)
-        char[][] oldGrid = currentBoard.getGrid();
-        char[][] newGrid = new char[currentBoard.getRows()][currentBoard.getCols()];
-        for (int i = 0; i < currentBoard.getRows(); i++) {
-            for (int j = 0; j < currentBoard.getCols(); j++) {
-                newGrid[i][j] = oldGrid[i][j]; 
-            }
-        }        
-
-        // mengcopy pieces lama
-        Map<Character, Piece> newPieces = new HashMap<>();
-        for (Map.Entry<Character, Piece> entry : currentBoard.getPieces().entrySet()) {
-            char id = entry.getKey();
-            List<Position> newPos = new ArrayList<>();
-            for (Position pos : entry.getValue().getPositions()) {
-                newPos.add(new Position(pos.row, pos.col));
-            }
-            newPieces.put(id, new Piece(id, newPos));
-        }
-
-        Piece targetPiece = newPieces.get(piece.getId());
-        List<Position> oldPositions = targetPiece.getPositions(); // mengcopy positions lama dari piece yang akan digerakkan 
-
-        for (Position pos : oldPositions) {
-            newGrid[pos.row][pos.col] = '.'; // jadi position lama menjadi (".") setelah gerak
-        }
-
-        List<Position> newPositions = new ArrayList<>();
-        for (Position pos : oldPositions) {
-            int newRow = pos.row;
-            int newCol = pos.col;
-
-            switch (dir) {
-                case UP:    newRow -= steps; break;
-                case DOWN:  newRow += steps; break;
-                case LEFT:  newCol -= steps; break;
-                case RIGHT: newCol += steps; break;
-            }
-
-            if (newRow < 0 || newRow >= currentBoard.getRows() || newCol < 0 || newCol >= currentBoard.getCols()) {
-                return null;
-            }
-
-            if (newGrid[newRow][newCol] != '.') { // null jika grid ada piece lain
-                return null;
-            }
-
-            newPositions.add(new Position(newRow, newCol));
-        }
-
-        for (Position pos : newPositions) {
-            newGrid[pos.row][pos.col] = piece.getId();
-        }
-
-        targetPiece.setPositions(newPositions);
-
-        return new Board(currentBoard.getRows(), currentBoard.getCols(), newGrid, newPieces, currentBoard.getExitPosition());
     }
 
     protected String generateBoardKey(Board board) {

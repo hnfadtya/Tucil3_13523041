@@ -1,8 +1,7 @@
 package solver;
 
-import model.Move;
-
 import java.util.List;
+import model.Move;
 
 public class Result {
     private List<Move> moves;

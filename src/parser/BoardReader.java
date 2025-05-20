@@ -31,35 +31,36 @@ public class BoardReader {
         Position exitPosition = null;
         List<String> boardLines = new ArrayList<>();
 
-        if (rawLines.size() == rows + 1) {
-            // K di atas atau bawah
-            if (rawLines.get(0).contains("K")) {
-                // K di atas
+        if (rawLines.size() == rows + 1) { // K di atas atau bawah
+            if (rawLines.get(0).contains("K")) { // K di atas
                 int kCol = rawLines.get(0).indexOf('K');
-                exitPosition = new Position(-1, kCol); // -1 row artinya di atas
-                boardLines = rawLines.subList(1, rawLines.size());
-            } else {
-                // K di bawah
+                exitPosition = new Position(-1, kCol); // kRow = -1 (di atas) 
+                boardLines = rawLines.subList(1, rawLines.size()); // membuang baris paling atas
+            } else { // K di bawah
                 int kCol = rawLines.get(rawLines.size() - 1).indexOf('K');
-                exitPosition = new Position(rows, kCol); // row = rows → di bawah
-                boardLines = rawLines.subList(0, rows);
+                exitPosition = new Position(rows, kCol); // kRow = rows (di bawah)
+                boardLines = rawLines.subList(0, rows); // membuang baris paling bawah
             }
-        } else {
-            // K ada di kiri atau kanan (di dalam baris grid)
-            for (int r = 0; r < rows; r++) {
-                String row = rawLines.get(r);
-                if (row.charAt(0) == 'K') {
-                    exitPosition = new Position(r, -1); // -1 col = kiri
-                    boardLines.add(row.substring(1));  // buang 'K'
-                } else if (row.charAt(row.length() - 1) == 'K') {
-                    exitPosition = new Position(r, cols); // col = cols → kanan
+        } else { // K ada di kiri atau kanan (di dalam baris grid)
+            if ((rawLines.get(0)).charAt(0) == ' ') { // K di kiri
+                for (int r = 0; r < rows; r++) {
+                    String row = rawLines.get(r);
+                    if (row.charAt(0) == 'K') {
+                        exitPosition = new Position(r, -1); // kCol = -1 (di kiri)
+                    } 
+                    boardLines.add(row.substring(1));  // membuang baris paling kiri
+                }
+            } else {
+                for (int r = 0; r < rows; r++) {
+                    String row = rawLines.get(r);
+                    if (row.charAt(cols) == 'K') {
+                        exitPosition = new Position(r, cols); // kCol = cols (di kanan)
+                    } 
                     boardLines.add(row.substring(0, row.length() - 1)); // buang 'K'
-                } else {
-                    boardLines.add(row); // baris aman
                 }
             }
         }
-
+        
         // 5. Bangun grid dan mapping piece
         char[][] grid = new char[rows][cols];
         Map<Character, List<Position>> piecePositions = new HashMap<>();
@@ -69,14 +70,14 @@ public class BoardReader {
             for (int c = 0; c < cols; c++) {
                 char ch = row.charAt(c);
                 grid[r][c] = ch;
-                System.out.print(ch);
+                // System.out.print(ch);
                 
                 if (Character.isUpperCase(ch)) {
                     piecePositions.putIfAbsent(ch, new ArrayList<>());
                     piecePositions.get(ch).add(new Position(r, c));
                 }
             }
-            System.out.println();
+            // System.out.println();
         }
 
         // 6. Buat objek Piece
