@@ -1,77 +1,72 @@
-import java.io.IOException;
+import java.util.List;
 import java.util.Scanner;
+import model.Board;
+import model.Move;
+import parser.BoardReader;
+import solver.*;
 
 public class Main {
     public static void main(String[] args) {
-        if (args.length < 1) {
-            System.out.println("Penggunaan: java Main <path_ke_file_konfigurasi>");
-            // Contoh: java Main test/sample_board.txt
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("=== Rush Hour Puzzle Solver ===");
+
+        // 1. Input file konfigurasi
+        System.out.print("Masukkan nama file konfigurasi (misal: test/input1.txt): ");
+        String filename = scanner.nextLine();
+
+        Board board;
+        try {
+            board = BoardReader.readFromFile(filename);
+            System.out.println("Exit at: " + board.getExitPosition());
+        } catch (Exception e) {
+            System.err.println("Gagal membaca file: " + e.getMessage());
             return;
         }
-        String filePath = args[0];
 
-        try {
-            State initialState = Solver.parseBoardFromFile(filePath); // Panggil dari Solver
-            System.out.println("State Awal Papan:");
-            System.out.println(initialState);
+        // 2. Pilih algoritma
+        System.out.println("\nPilih algoritma pencarian:");
+        System.out.println("1. Uniform Cost Search (UCS)");
+        System.out.println("2. Greedy Best First Search (COMING SOON)");
+        System.out.println("3. A* Search (COMING SOON)");
+        System.out.print("Pilihan [1-3]: ");
+        int choice = scanner.nextInt();
+        scanner.nextLine(); // flush newline
 
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("Pilih algoritma (UCS, GBFS, A*):");
-            String algoChoice = scanner.nextLine().toUpperCase();
-
-            Heuristic selectedHeuristic = null;
-            if (algoChoice.equals("GBFS") || algoChoice.equals("A*")) {
-                System.out.println("Pilih heuristik (1 untuk Manhattan, 2 untuk Blocking):");
-                String heurInput = scanner.nextLine();
-                int heurChoice = -1;
-                try {
-                    heurChoice = Integer.parseInt(heurInput);
-                } catch (NumberFormatException e) {
-                    System.out.println("Input heuristik tidak valid. Harus berupa angka.");
-                    scanner.close();
-                    return;
-                }
-
-                if (heurChoice == 1) {
-                    selectedHeuristic = new ManhattanDistanceHeuristic();
-                } else if (heurChoice == 2) {
-                    selectedHeuristic = new BlockingHeuristic();
-                } else {
-                    System.out.println("Pilihan heuristik tidak valid.");
-                    scanner.close();
-                    return;
-                }
-            }
-
-            Solver.Solution solution = Solver.solve(initialState, algoChoice, selectedHeuristic); // Panggil dari Solver
-
-            System.out.println("\n--- Hasil ---");
-            System.out.println("Algoritma: " + algoChoice);
-            if (selectedHeuristic != null) {
-                 System.out.println("Heuristik: " + selectedHeuristic.getClass().getSimpleName());
-            }
-
-            if (solution.path != null && !solution.path.isEmpty()) {
-                System.out.println("Solusi ditemukan dalam " + solution.path.size() + " langkah:");
-                for (Move move : solution.path) { // Pastikan Move diimport jika perlu
-                    System.out.println(move);
-                }
-            } else {
-                System.out.println("Tidak ada solusi yang ditemukan.");
-            }
-            System.out.println("Node yang dikunjungi: " + solution.nodesVisited);
-            System.out.printf("Waktu eksekusi: %.3f ms\n", solution.executionTimeMs);
-
-            scanner.close();
-
-        } catch (IOException e) {
-            System.err.println("Error membaca file atau konfigurasi papan: " + e.getMessage());
-            // e.printStackTrace(); // Aktifkan untuk debugging detail
-        } catch (IllegalArgumentException e) {
-            System.err.println("Error argumen: " + e.getMessage());
-        } catch (Exception e) { // Tangkap Exception umum untuk masalah tak terduga
-            System.err.println("Terjadi kesalahan tak terduga: " + e.getMessage());
-            e.printStackTrace(); // Ini penting untuk debugging masalah tak terduga
+        Solver solver = null;
+        switch (choice) {
+            case 1:
+                solver = new UCSolver();
+                break;
+            case 2:
+            case 3:
+                System.out.println("Belum diimplementasikan. Silakan pilih UCS terlebih dahulu.");
+                return;
+            default:
+                System.out.println("Pilihan tidak valid.");
+                return;
         }
+
+        // 3. Jalankan Solver
+        System.out.println("\nMemulai pencarian solusi...");
+        Result result = solver.solve(board);
+
+        // 4. Tampilkan hasil
+        System.out.println("\n=== HASIL ===");
+        List<Move> moves = result.getMoves();
+        if (moves.isEmpty()) {
+            System.out.println("Tidak ditemukan solusi.");
+        } else {
+            System.out.println("Jumlah langkah: " + moves.size());
+            System.out.println("Langkah-langkah:");
+            for (int i = 0; i < moves.size(); i++) {
+                System.out.println((i + 1) + ". " + moves.get(i));
+            }
+        }
+
+        System.out.println("\nJumlah node dikunjungi: " + result.getVisitedNodes());
+        System.out.println("Waktu eksekusi: " + result.getExecutionTime() + " ms");
+        
+        scanner.close();
     }
 }

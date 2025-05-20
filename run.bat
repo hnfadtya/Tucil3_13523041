@@ -1,13 +1,10 @@
-@REM @echo off
-@REM javac -d bin src\*.java
-@REM java -cp bin src.Main
-@REM pause
-
 @echo off
-REM 
-javac -d bin src\*.java
 
-REM 
+REM Membuat folder output
+@REM mkdir bin
+
+REM Compile semua file .java dari src dan subfolder
+javac -d bin src\Main.java src\model\*.java src\parser\*.java src\solver\*.java
+
+REM Jalankan program dengan classpath ke folder bin
 java -cp bin Main
-
-@REM pause
