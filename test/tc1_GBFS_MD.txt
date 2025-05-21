@@ -1,0 +1,86 @@
+Jumlah langkah: 10
+
+Langkah 1: P DOWN 1
+AAB..F.
+..BCDF.
+.P.CDF.
+GP.III.
+GPJ....
+LLJMM..
+
+Langkah 2: B DOWN 1
+AA...F.
+..*CDF.
+.P*CDF.
+GP.III.
+GPJ....
+LLJMM..
+
+Langkah 3: D UP 1
+AA..*F.
+..BC*F.
+.PBC.F.
+GP.III.
+GPJ....
+LLJMM..
+
+Langkah 4: C UP 1
+AA.*DF.
+..B*DF.
+.PB..F.
+GP.III.
+GPJ....
+LLJMM..
+
+Langkah 5: M RIGHT 2
+AA.CDF.
+..BCDF.
+.PB..F.
+GP.III.
+GPJ....
+LLJ..**
+
+Langkah 6: J UP 1
+AA.CDF.
+..BCDF.
+.PB..F.
+GP*III.
+GP*....
+LL...MM
+
+Langkah 7: M LEFT 2
+AA.CDF.
+..BCDF.
+.PB..F.
+GPJIII.
+GPJ....
+LL.**..
+
+Langkah 8: M RIGHT 1
+AA.CDF.
+..BCDF.
+.PB..F.
+GPJIII.
+GPJ....
+LL..**.
+
+Langkah 9: L RIGHT 2
+AA.CDF.
+..BCDF.
+.PB..F.
+GPJIII.
+GPJ....
+..**MM.
+
+Langkah 10: P DOWN 1
+AA.CDF.
+..BCDF.
+..B..F.
+GPJIII.
+GPJ....
+.PLLMM.
+
+
+Statistik:
+Node dikunjungi: 58
+Waktu eksekusi: 6 ms

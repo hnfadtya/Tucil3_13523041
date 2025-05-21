@@ -56,7 +56,7 @@ public class BoardReader {
                     if (row.charAt(cols) == 'K') {
                         exitPosition = new Position(r, cols); // kCol = cols (di kanan)
                     } 
-                    boardLines.add(row.substring(0, row.length() - 1)); // buang 'K'
+                    boardLines.add(row.substring(0, cols)); // buang 'K'
                 }
             }
         }

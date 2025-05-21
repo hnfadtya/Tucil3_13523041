@@ -69,7 +69,6 @@ public class Board {
         int steps = move.getSteps();
         Move.Direction dir = move.getDirection();
 
-        // Salin board ini
         Board copiedBoard = this.copyBoard();
         Map<Character, Piece> newPieces = copiedBoard.getPieces();
         Piece targetPiece = newPieces.get(piece.getId());

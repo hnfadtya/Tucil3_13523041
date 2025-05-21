@@ -1,0 +1,46 @@
+Jumlah langkah: 5
+
+Langkah 1: B UP 1
+*AAHH..
+*DD.L..
+...FLPP
+CC.FGG.
+EE.F.I.
+.JJ..I.
+
+Langkah 2: F DOWN 1
+BAAHH..
+BDD.L..
+....LPP
+CC.*GG.
+EE.*.I.
+.JJ*.I.
+
+Langkah 3: H RIGHT 2
+BAA..**
+BDD.L..
+....LPP
+CC.FGG.
+EE.F.I.
+.JJF.I.
+
+Langkah 4: L UP 1
+BAA.*HH
+BDD.*..
+.....PP
+CC.FGG.
+EE.F.I.
+.JJF.I.
+
+Langkah 5: P LEFT 5
+BAA.LHH
+BDD.L..
+PP.....
+CC.FGG.
+EE.F.I.
+.JJF.I.
+
+
+Statistik:
+Node dikunjungi: 251
+Waktu eksekusi: 13 ms

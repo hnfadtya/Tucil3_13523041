@@ -1,119 +1,192 @@
 import heuristic.*;
-import java.io.IOException;
-import java.util.List;
-import java.util.Scanner;
-import model.Board;
-import model.Move;
+import java.io.*;
+import java.util.*;
+import model.*;
 import parser.BoardReader;
 import solver.*;
 
 public class Main {
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final String RED = "\u001B[31m";
+    private static final String BLUE = "\u001B[34m";
+    private static final String YELLOW_BG = "\u001B[43m";
+    private static final String RESET = "\u001B[0m";
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
         while (true) {
-            showTitle();
-    
-            // === 1. PILIH FILE INPUT ===
-            System.out.println("Masukkan nama file konfigurasi (di folder test/): "); // asumsikan sudah ada file di folder test/
-            System.out.println("Ketik 'Exit' untuk keluar dari program...");
-            System.out.print(">> ");
-    
-            String input = scanner.nextLine().trim();
-            if (input.equals("Exit")) break;
-            
-            String filename = "test/" + input;
-    
-            Board board;
+            clearScreen();
+            printHeader();
+            run();
+            System.out.print("\nIngin mencoba lagi? (y/n): ");
+            if (!scanner.nextLine().trim().equalsIgnoreCase("y")) {printFooter(); break;}
+        }
+    }
+
+    private static void run() {
+        Board board = chooseFile();
+        Solver solver = chooseSolver();
+        String outputName = askOutputFileName();
+
+        try {
+            Result result = solver.solve(board);
+            displayResult(result, board, solver.getClass().getSimpleName(), outputName);
+        } catch (OutOfMemoryError e) {
+            System.err.println("\n Out of memory! Solusi tidak dapat ditemukan karena keterbatasan memori.");
+        }
+    }
+
+    private static String askOutputFileName() {
+        System.out.print("Masukkan nama file output (tanpa .txt): ");
+        return scanner.nextLine().trim();
+    }
+
+    private static Board chooseFile() {
+        while (true) {
+            System.out.print("Masukkan nama file konfigurasi (di folder test/): ");
+            String filename = "test/" + scanner.nextLine().trim();
             try {
-                board = BoardReader.readFromFile(filename);
+                Board board = BoardReader.readFromFile(filename);
                 System.out.println("\nKonfigurasi papan berhasil dibaca!\n");
-                board.printBoard();
-                System.out.println("Koordinat pintu keluar: " + (board.getExitPosition()).toString());
-            } catch (IOException e) {
-                System.err.println("Gagal membaca file: " + e.getMessage());
-                return;
+                printBoard(board, null);
+                return board;
+            } catch (Exception e) {
+                System.out.println("Gagal membaca file: " + e.getMessage());
             }
-    
-            // === 2. PILIH ALGORITMA ===
+        }
+    }
+
+    private static Solver chooseSolver() {
+        while (true) {
             System.out.println("\nPilih algoritma pencarian:");
             System.out.println("1. Uniform Cost Search (UCS)");
             System.out.println("2. Greedy Best First Search (GBFS)");
             System.out.println("3. A* Search");
             System.out.print("Pilihan [1-3]: ");
-            int algChoice = scanner.nextInt();
-            scanner.nextLine(); // flush newline
-    
-            // === 3. PILIH HEURISTIK (untuk GBFS dan A*) ===
+            String choice = scanner.nextLine().trim();
             HeuristicFunction heuristic = null;
-            if (algChoice == 2 || algChoice == 3) {
-                System.out.println("\nPilih heuristik:");
-                System.out.println("1. Manhattan Distance");
-                System.out.println("2. Blocking Pieces");
-                System.out.print("Pilihan [1-2]: ");
-                int heurChoice = scanner.nextInt();
-                scanner.nextLine(); // flush newline
-    
-                heuristic = switch (heurChoice) {
-                    case 1 -> new ManhattanDistanceHeuristic();
-                    case 2 -> new BlockingHeuristic();
-                    default -> {
-                        System.out.println("Pilihan tidak valid. Menggunakan Manhattan.");
-                        yield new ManhattanDistanceHeuristic();
-                    }
-                };
+
+            if (choice.equals("1")) return new UCS();
+            if (choice.equals("2") || choice.equals("3")) {
+                heuristic = chooseHeuristic();
+                return choice.equals("2") ? new GreedyBFS(heuristic) : new AStar(heuristic);
             }
-    
-            // === 4. JALANKAN SOLVER ===
-            Solver solver = switch (algChoice) {
-                case 1 -> new UCS();
-                case 2 -> new GreedyBFS(heuristic);
-                case 3 -> new AStar(heuristic);
-                default -> {
-                    System.out.println("Pilihan tidak valid. Menggunakan UCS.");
-                    yield new UCS();
-                }
-            };
-    
-            System.out.println("\nMencari solusi...\n");
-            Result result = solver.solve(board);
-    
-            // === 5. CETAK HASIL ===
-            displayResult(result, board);
+            System.out.println("Pilihan tidak valid. Silakan coba lagi.");
         }
-        scanner.close();
     }
 
-    private static void showTitle() {
-        System.out.println("=========================================");
-        System.out.println("            RUSH HOUR SOLVER             ");
-        System.out.println("=========================================");
+    private static HeuristicFunction chooseHeuristic() {
+        while (true) {
+            System.out.println("\nPilih heuristik:");
+            System.out.println("1. Manhattan Distance");
+            System.out.println("2. Blocking Pieces");
+            System.out.print("Pilihan [1-2]: ");
+            String choice = scanner.nextLine().trim();
+            if (choice.equals("1")) return new ManhattanDistanceHeuristic();
+            if (choice.equals("2")) return new BlockingHeuristic();
+            System.out.println("Pilihan tidak valid.");
+        }
     }
 
-    private static void displayResult(Result result, Board board) {
+    private static void displayResult(Result result, Board board, String solverName, String outputName) {
         List<Move> moves = result.getMoves();
+        Board currentBoard = board.copyBoard();
+        StringBuilder outputFile = new StringBuilder();
+        String filePath = "test/" + outputName + ".txt";
+
+
         if (moves.isEmpty()) {
             System.out.println("Tidak ditemukan solusi.");
+            outputFile.append("Tidak ditemukan solusi.\n");
         } else {
             System.out.println("Solusi ditemukan!");
             System.out.println("Jumlah langkah: " + moves.size());
-            System.out.println("\nMenampilkan simulasi langkah demi langkah:\n");
-
-            Board currentBoard = board.copyBoard();
+            outputFile.append("Jumlah langkah: ").append(moves.size()).append("\n\n");
 
             for (int i = 0; i < moves.size(); i++) {
-                Move move = result.getMoves().get(i);
+                Move move = moves.get(i);
                 System.out.println("Langkah " + (i + 1) + ": " + move);
+                outputFile.append("Langkah ").append(i + 1).append(": ").append(move).append("\n");
 
                 currentBoard = currentBoard.simulateMove(currentBoard.getPieces().get(move.getPieceId()), move);
-
-                currentBoard.printBoard();
-                System.out.println();
+                printBoard(currentBoard, move.getPieceId());
+                outputFile.append(boardToString(currentBoard, move.getPieceId())).append("\n");
             }
         }
 
         System.out.println("\nStatistik:");
         System.out.println("Node dikunjungi: " + result.getVisitedNodes());
         System.out.println("Waktu eksekusi: " + result.getExecutionTime() + " ms");
+
+        outputFile.append("\nStatistik:\n")
+                  .append("Node dikunjungi: ").append(result.getVisitedNodes()).append("\n")
+                  .append("Waktu eksekusi: ").append(result.getExecutionTime()).append(" ms\n");
+
+        try (PrintWriter writer = new PrintWriter(filePath)) {
+            writer.print(outputFile);
+            System.out.println("\nHasil disimpan ke: " + filePath);
+        } catch (IOException e) {
+            System.err.println("\nGagal menyimpan hasil ke file: " + e.getMessage());
+        }
+    }
+
+    private static void printBoard(Board board, Character highlight) {
+        char[][] grid = board.getGrid();
+        for (char[] row : grid) {
+            for (char cell : row) {
+                if (cell == 'P') System.out.print(RED + cell + RESET);
+                else if (cell == 'K') System.out.print(BLUE + cell + RESET);
+                else if (highlight != null && cell == highlight) System.out.print(YELLOW_BG + cell + RESET);
+                else System.out.print(cell);
+            }
+            System.out.println();
+        }
+    }
+
+    private static String boardToString(Board board, Character highlight) {
+        StringBuilder sb = new StringBuilder();
+        char[][] grid = board.getGrid();
+        for (char[] row : grid) {
+            for (char cell : row) {
+                if (cell == 'P') sb.append('P');
+                else if (cell == 'K') sb.append('K');
+                else if (highlight != null && cell == highlight) sb.append('*');
+                else sb.append(cell);
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    private static void printHeader() {
+        System.out.println("                                                               ");
+        System.out.println("                                                               ");
+        System.out.println("     ░▒█▀▀▄░▒█░▒█░▒█▀▀▀█░▒█░▒█░░░▒█░▒█░▒█▀▀▀█░▒█░▒█░▒█▀▀▄      ");
+        System.out.println("     ░▒█▄▄▀░▒█░▒█░░▀▀▀▄▄░▒█▀▀█░░░▒█▀▀█░▒█░░▒█░▒█░▒█░▒█▄▄▀      ");
+        System.out.println("     ░▒█░▒█░▒█▄▄█░▒█▄▄▄█░▒█░▒█░░░▒█░▒█░▒█▄▄▄█░▒█▄▄█░▒█░▒█      ");
+        System.out.println("                                                               ");
+        System.out.println("                 Welcome to Rush Hour Solver!                  ");
+        System.out.println("                      by Hanif Kalyana Aditya                  ");
+        System.out.println("                                                               ");
+        System.out.println("                                                               ");
+    }
+
+    private static void printFooter() {
+        System.out.println("\n┌──────────────────────────────────────────────┐");
+        System.out.println("│  Terima kasih telah menggunakan program ini! │");
+        System.out.println("└──────────────────────────────────────────────┘\n");
+    }
+
+    private static void clearScreen() {
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("win")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                System.out.print("\033c"); // alternative clear for Unix-like systems
+                System.out.flush();
+            }
+        } catch (Exception e) {
+            System.out.println("\n Tidak bisa membersihkan layar.");
+        }
     }
 }

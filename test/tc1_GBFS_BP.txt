@@ -1,0 +1,46 @@
+Jumlah langkah: 5
+
+Langkah 1: P DOWN 1
+AAB..F.
+..BCDF.
+.P.CDF.
+GP.III.
+GPJ....
+LLJMM..
+
+Langkah 2: M RIGHT 2
+AAB..F.
+..BCDF.
+.P.CDF.
+GP.III.
+GPJ....
+LLJ..**
+
+Langkah 3: J UP 2
+AAB..F.
+..BCDF.
+.P*CDF.
+GP*III.
+GP.....
+LL...MM
+
+Langkah 4: L RIGHT 2
+AAB..F.
+..BCDF.
+.PJCDF.
+GPJIII.
+GP.....
+..**.MM
+
+Langkah 5: P DOWN 1
+AAB..F.
+..BCDF.
+..JCDF.
+GPJIII.
+GP.....
+.PLL.MM
+
+
+Statistik:
+Node dikunjungi: 12
+Waktu eksekusi: 2 ms
